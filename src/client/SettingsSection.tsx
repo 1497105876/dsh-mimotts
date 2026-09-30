@@ -19,6 +19,7 @@ import { TtsClientError } from './api.ts'
 import { errorKeyFor } from './SpeakAction.tsx'
 import type { MimottsLocaleKey } from './locales.ts'
 import { PlayerBar } from './PlayerBar.tsx'
+import { RecordingsList } from './RecordingsList.tsx'
 import type { TtsSettingsSectionProps } from './slots.ts'
 import { useAudioPlayer } from './use-audio-player.ts'
 
@@ -199,6 +200,11 @@ export function TtsSettingsSection({ useForm, edit, resetField, save, discard, s
             : null}
         </div>
         {failureKey !== null ? <p className="mimotts-fieldError" role="status">{t(failureKey)}</p> : null}
+      </div>
+      <div className="mimotts-recordingsSection">
+        <h3 className="mimotts-recordingsTitle">{t('recordings')}</h3>
+        <p className="mimotts-recordingsHintText">{t('recordingsHint')}</p>
+        <RecordingsList t={t} />
       </div>
     </SettingsForm>
   )

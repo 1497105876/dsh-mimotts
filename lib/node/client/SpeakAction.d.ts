@@ -24,4 +24,4 @@ export declare function errorKeyFor(failure: TtsClientError | 'empty' | 'unconfi
  * selector hook, and localized copy.
  * @returns the volume button with its optional player and failure notice.
  */
-export declare function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synthesize, t }: SpeakActionProps): import("react").JSX.Element;
+export declare function SpeakAction({ messageId, useChat, useStatus, ensureStatus, t }: SpeakActionProps): import("react").JSX.Element;

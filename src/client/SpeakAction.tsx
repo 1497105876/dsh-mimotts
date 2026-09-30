@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { IconLoadingOutlineRegular, IconWarningTriangleOutlineRegular, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
-import { TtsClientError } from './api.ts'
+import { requestRecording, TtsClientError } from './api.ts'
 import { speakableTextFor } from './chat-text.ts'
 import type { MimottsLocaleKey } from './locales.ts'
 import { PlayerBar } from './PlayerBar.tsx'
@@ -49,7 +49,7 @@ export function errorKeyFor(failure: TtsClientError | 'empty' | 'unconfigured'):
  * selector hook, and localized copy.
  * @returns the volume button with its optional player and failure notice.
  */
-export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synthesize, t }: SpeakActionProps) {
+export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, t }: SpeakActionProps) {
   const status = useStatus(snapshot => snapshot)
   const text = useChat(snapshot => speakableTextFor(snapshot, messageId))
   const [phase, setPhase] = useState<SpeakPhase>('idle')
@@ -119,7 +119,7 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
     setPhase('loading')
     setFailure(null)
     setPanelOpen(true)
-    void synthesize({ text }).then((blob) => {
+    void requestRecording({ text }).then(({ blob }) => {
       autoplay.current = true
       setPhase('ready')
       setSource((previous) => {
@@ -130,7 +130,7 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
       setPhase('error')
       setFailure(error instanceof TtsClientError ? error : new TtsClientError('generic', String(error)))
     })
-  }, [phase, player, source, status.configured, synthesize, text])
+  }, [phase, player, source, status.configured, text])
 
   const open = source !== null
   const buttonLabel = phase === 'loading'
