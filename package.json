@@ -29,7 +29,6 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && tsdown",
-    "prepare": "npm run build",
     "test": "node --test tests/*.test.mjs"
   },
   "dsh": {
