@@ -34,6 +34,8 @@ export interface AudioPlayer {
    * @param seconds - absolute position in seconds, clamped to the loaded range.
    */
   seek: (seconds: number) => void
+  /** Pause playback without toggling (used when dismissing the panel). */
+  pause: () => void
 }
 
 /** The one player currently allowed to advance, if any. */
@@ -122,5 +124,10 @@ export function useAudioPlayer(source: string | null): AudioPlayer {
     setState(previous => ({ ...previous, currentTime: target, ended: false }))
   }, [])
 
-  return { state, toggle, seek }
+  const pause = useCallback(() => {
+    const audio = elementRef.current
+    if (audio !== null) audio.pause()
+  }, [])
+
+  return { state, toggle, seek, pause }
 }

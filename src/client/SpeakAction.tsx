@@ -57,6 +57,33 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
   const [source, setSource] = useState<string | null>(null)
   const player = useAudioPlayer(source)
   const toggle = player.toggle
+  // Panel visibility is decoupled from whether audio exists, so it can be
+  // dismissed (click-outside / Esc) without discarding the audio source.
+  const [panelOpen, setPanelOpen] = useState(false)
+  const rootRef = useRef<HTMLSpanElement | null>(null)
+
+  // Dismiss the floating panel when clicking outside it or pressing Escape,
+  // and pause playback so no audio lingers with no visible controls.
+  useEffect(() => {
+    if (!panelOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      const root = rootRef.current
+      if (root !== null && root.contains(event.target as Node)) return
+      setPanelOpen(false)
+      player.pause()
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setPanelOpen(false)
+      player.pause()
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [panelOpen])
   // Set when a fresh synthesis should start playing as soon as its audio lands.
   const autoplay = useRef(false)
   // The live object URL, held for revocation outside React's state updates.
@@ -77,6 +104,7 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
   const onClick = useCallback(() => {
     if (phase === 'loading') return
     if (source !== null) {
+      if (!panelOpen) setPanelOpen(true)
       player.toggle()
       return
     }
@@ -90,6 +118,7 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
     }
     setPhase('loading')
     setFailure(null)
+    setPanelOpen(true)
     void synthesize({ text }).then((blob) => {
       autoplay.current = true
       setPhase('ready')
@@ -113,7 +142,7 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
         : t('speak')
 
   return (
-    <span className={open ? 'mimotts-root mimotts-open' : 'mimotts-root'}>
+    <span ref={rootRef} className={open ? 'mimotts-root mimotts-open' : 'mimotts-root'}>
       <Tooltip label={buttonLabel} side="bottom">
         <button
           type="button"
@@ -138,7 +167,7 @@ export function SpeakAction({ messageId, useChat, useStatus, ensureStatus, synth
           </Tooltip>
         )
         : null}
-      {open
+      {panelOpen && open
         ? (
           <span className="mimotts-panel">
             <PlayerBar

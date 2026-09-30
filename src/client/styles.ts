@@ -34,7 +34,7 @@ export const CSS = `
 @keyframes mimotts-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .mimotts-panel {
-  position: absolute; top: 100%; left: 0; margin-top: 2px; z-index: 40;
+  position: absolute; top: 50%; left: 100%; transform: translateY(-50%); margin-left: 4px; z-index: 40;
   display: block; width: 280px; padding: 8px 10px;
   background: var(--dsw-alias-bg-layer-2);
   border: 1px solid var(--dsw-alias-border-l2);

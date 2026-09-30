@@ -30,6 +30,8 @@ export interface AudioPlayer {
      * @param seconds - absolute position in seconds, clamped to the loaded range.
      */
     seek: (seconds: number) => void;
+    /** Pause playback without toggling (used when dismissing the panel). */
+    pause: () => void;
 }
 /**
  * Bind one audio source to playback state and controls.
