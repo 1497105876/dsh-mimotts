@@ -1,0 +1,54 @@
+/**
+ * Injected faces and composed props of this plugin's two slot entries: the
+ * speak control inside `conversation.chat.assistant-actions`, and the
+ * `语音合成` page inside `settings.section`.
+ *
+ * Both slots are declared and typed by other packages (ui-chat / ui-conversation
+ * and the settings domain base); this package only contributes entries, so no
+ * SlotMap merge lives here. Live state arrives through the `hooks` compartment
+ * (the framework standard kit binds `status` into `useStatus` and `form` into
+ * `useForm`), and business verbs arrive as plain callbacks.
+ * @module dsh-mimotts/client/slots
+ */
+
+import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
+import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+// Type-only: pulls the ui-conversation SlotMap merge (the assistant-actions entry).
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
+// Type-only: pulls the settings domain base's SlotMap merge (the settings.section
+// entry) and the ctx.configForms Context merge.
+import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import type { TtsStatusView, TtsSynthesizeRequest } from '../settings.ts'
+// Type-only: pulls this package's LocaleNamespaceMap merge (the 'settings.mimotts' seat).
+import type {} from './locales.ts'
+import type { TtsSettingsInjected } from './settings-controller.ts'
+
+export type { TtsSettingsInjected, TtsSettingsState } from './settings-controller.ts'
+
+/** Injected business face of one assistant-message speak entry. */
+export interface SpeakActionInjected {
+  hooks: {
+    /** The Host's resolved engine configuration (never secrets). */
+    status: SnapshotStore<TtsStatusView>
+  }
+  /** Load the engine status once, on first interaction. */
+  ensureStatus: () => void
+  /**
+   * Synthesize one text into playable audio.
+   * @param request - text and optional style/voice overrides.
+   * @returns the WAV payload as a Blob.
+   */
+  synthesize: (request: TtsSynthesizeRequest) => Promise<Blob>
+}
+
+/** Full props of one assistant-message speak entry. */
+export type SpeakActionProps =
+  PropsRuntime<'conversation.chat.assistant-actions'>
+  & InjectFace<SpeakActionInjected>
+  & PropsLocale<'settings.mimotts'>
+
+/** Full props of the `语音合成` settings page. */
+export type TtsSettingsSectionProps =
+  PropsRuntime<'settings.section'>
+  & InjectFace<TtsSettingsInjected>
+  & PropsLocale<'settings.mimotts'>
