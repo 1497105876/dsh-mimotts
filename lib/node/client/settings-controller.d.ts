@@ -1,9 +1,9 @@
 /**
  * The staged settings form behind the `语音合成` page: one `SettingsFormModel`
- * over the `mimotts` configuration namespace, plus the write-only API-key
- * control (the literal is a `role('secret')` field — it never rides a form
- * response, so the page learns only whether one is configured, through the
- * Host's status route).
+ * over the `mimotts` configuration namespace. The API key is addressed by a
+ * credential reference (`apiKeyEnv`) — an ordinary, non-secret field; the
+ * literal key lives in the host credentials store, and the page learns only
+ * whether one resolves, through the Host's status route.
  * @module dsh-mimotts/client/settings-controller
  */
 import type { SnapshotStore } from '@deepseek-ai/dsh-client-store';
@@ -15,10 +15,10 @@ export type TtsSettingsField = keyof TtsSettings;
 export type TtsSettingsSynthesize = (request: TtsSynthesizeRequest) => Promise<Blob>;
 /** What the settings page renders. */
 export interface TtsSettingsState extends SettingsFormShell {
-    /** The staged key plus whether the Host holds one. */
-    apiKey: SettingsFieldState & {
-        configured: boolean;
-    };
+    /** The credential reference naming the key in the credentials store. */
+    apiKeyEnv: SettingsFieldState;
+    /** Whether the Host resolves a non-empty key through that reference. */
+    apiKeyConfigured: boolean;
     /** Endpoint base. */
     baseUrl: SettingsFieldState;
     /** Model id. */
@@ -69,13 +69,6 @@ export declare class TtsSettingsController {
     inject(): TtsSettingsInjected;
     /** Release form and status subscriptions. */
     dispose(): void;
-    /**
-     * Write the staged key through the settings namespace's mutate path, then
-     * re-read whether the Host now holds one.
-     * @param text - the staged key literal.
-     * @returns whether the Host accepted the write.
-     */
-    private writeApiKey;
     /** @returns the page projection rebuilt from the form and the status mirror. */
     private projection;
 }

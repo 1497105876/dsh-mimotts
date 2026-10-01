@@ -12,7 +12,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  SettingsForm, SettingsSecretField, SettingsValueField,
+  SettingsForm, SettingsValueField,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import { AUDITION_TEXT } from '../settings.ts'
 import { TtsClientError } from './api.ts'
@@ -86,16 +86,21 @@ export function TtsSettingsSection({ useForm, edit, resetField, save, discard, s
       onSave={save}
       onDiscard={discard}
     >
-      <SettingsSecretField
-        id="mimotts-api-key"
-        label={t('apiKey')}
-        hint={t('apiKeyHint')}
+      <SettingsValueField
+        id="mimotts-api-key-env"
+        label={t('apiKeyEnv')}
+        hint={t('apiKeyEnvHint')}
+        overriddenLabel={t('overridden')}
+        resetLabel={t('reset')}
+        invalidLabel={t('invalidNumber')}
         disabled={disabled}
-        text={state.apiKey.text}
-        configured={state.apiKey.configured}
-        stateLabel={state.apiKey.configured ? t('apiKeySet') : t('apiKeyUnset')}
-        onEdit={(text) => { edit('apiKey', text) }}
+        {...state.apiKeyEnv}
+        onEdit={(text) => { edit('apiKeyEnv', text) }}
+        onReset={() => { resetField('apiKeyEnv') }}
       />
+      <p className="mimotts-auditionHint" role="status" style={{ marginTop: -6 }}>
+        {state.apiKeyConfigured ? t('apiKeySet') : t('apiKeyUnset')}
+      </p>
       <SettingsValueField
         id="mimotts-base-url"
         label={t('baseUrl')}

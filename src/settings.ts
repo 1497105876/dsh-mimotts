@@ -29,6 +29,12 @@ export const DEFAULT_MODEL = 'mimo-v2.5-tts'
 /** Preset voice used when no clone sample is configured. */
 export const DEFAULT_VOICE = 'mimo_default'
 
+/**
+ * Credential reference naming the MiMo API key inside the host credentials
+ * store; the literal key itself never lands in a configuration file.
+ */
+export const DEFAULT_CREDENTIAL_REF = 'MIMO_API_KEY'
+
 /** Longest text one synthesis accepts, in characters. */
 export const DEFAULT_MAX_CHARS = 2000
 
@@ -36,13 +42,14 @@ export const DEFAULT_MAX_CHARS = 2000
 export const DEFAULT_TIMEOUT_MS = 60_000
 
 /**
- * The resolved settings section, as the settings form projects it. Secrets
- * never ride a response: `apiKey` arrives as `undefined` no matter what the
- * Host holds, and its presence is reported only through {@link TtsStatusView}.
+ * The resolved settings section, as the settings form projects it. The API
+ * key is referenced, never stored: `apiKeyEnv` names a credential in the
+ * host credentials store, and its presence is reported only through
+ * {@link TtsStatusView}.
  */
 export interface TtsSettings {
-  /** Literal MiMo API key (write-only). */
-  apiKey?: string | undefined
+  /** Credential reference naming the MiMo API key in the credentials store. */
+  apiKeyEnv?: string | undefined
   /** Endpoint base; blank inherits {@link DEFAULT_BASE_URL}. */
   baseUrl?: string | undefined
   /** Model id; blank inherits {@link DEFAULT_MODEL}. */

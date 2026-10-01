@@ -20,8 +20,9 @@ import type {} from '@deepseek-ai/dsh-client-connection'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import type {} from '@deepseek-ai/dsh-settings'
 import z from '@deepseek-ai/schemastery'
+import { credentialRef } from '@deepseek-ai/dsh-credentials'
 import {
-  DEFAULT_BASE_URL, DEFAULT_MAX_CHARS, DEFAULT_MODEL, DEFAULT_TIMEOUT_MS, DEFAULT_VOICE,
+  DEFAULT_BASE_URL, DEFAULT_CREDENTIAL_REF, DEFAULT_MAX_CHARS, DEFAULT_MODEL, DEFAULT_TIMEOUT_MS, DEFAULT_VOICE,
   MIMOTTS_RECORDING_HEADER, MIMOTTS_RECORDINGS_PATH, MIMOTTS_STATUS_PATH, MIMOTTS_SYNTHESIZE_PATH,
 } from './settings.ts'
 import type { TtsErrorBody, TtsRecordingsIndex, TtsStatusView, TtsSynthesizeRequest } from './settings.ts'
@@ -35,8 +36,8 @@ export const name = 'mimotts'
 
 /** Runtime settings projected into the configuration form. */
 export interface Config {
-  /** Literal MiMo API key; leave blank and layer `!!js process.env.MIMO_API_KEY` over it instead. */
-  apiKey: Volatile<string | undefined>
+  /** Credential reference naming the MiMo API key in the credentials store. */
+  apiKeyEnv: Volatile<string | undefined>
   /** Endpoint base; `/chat/completions` is appended. */
   baseUrl: Volatile<string | undefined>
   /** MiMo TTS model id. */
@@ -54,7 +55,7 @@ export interface Config {
 }
 
 export const Config = z.object({
-  apiKey: z.string().role('secret').volatile(),
+  apiKeyEnv: z.string().role('credential-ref').default(DEFAULT_CREDENTIAL_REF).volatile(),
   baseUrl: z.string().default(DEFAULT_BASE_URL).volatile(),
   model: z.string().default(DEFAULT_MODEL).volatile(),
   voice: z.string().default(DEFAULT_VOICE).volatile(),
@@ -64,10 +65,34 @@ export const Config = z.object({
   timeoutMs: z.number().step(1).min(1).default(DEFAULT_TIMEOUT_MS).volatile(),
 })
 
-/** Read the whole config as one consistent snapshot at operation start. */
-function snapshotOf(config: Config): ReturnType<typeof resolveEngineConfig> {
+/** Narrow shape of the host credentials service used to resolve the key. */
+interface CredentialsService {
+  resolve(ref: unknown): Promise<{ value?: string } | undefined>
+}
+
+/**
+ * Read the whole config as one consistent snapshot at operation start. The
+ * credential reference resolves through the host credentials service, so the
+ * literal key never lives in a configuration file; an absent service, an
+ * unknown reference, or a missing value all resolve to an empty key, which
+ * the engine reports as `not-configured`.
+ */
+async function resolveEngineSnapshot(ctx: Context, config: Config): Promise<ReturnType<typeof resolveEngineConfig>> {
+  const credentials = (ctx as unknown as { get?(name: string): unknown }).get?.('credentials') as
+    | CredentialsService
+    | undefined
+  const ref = (config.apiKeyEnv.get() ?? '').trim()
+  let apiKey = ''
+  if (credentials !== undefined && ref !== '') {
+    try {
+      const resolved = await credentials.resolve(credentialRef(ref))
+      apiKey = (resolved?.value ?? '').trim()
+    } catch {
+      apiKey = ''
+    }
+  }
   return resolveEngineConfig({
-    apiKey: config.apiKey.get(),
+    apiKey,
     baseUrl: config.baseUrl.get(),
     model: config.model.get(),
     voice: config.voice.get(),
@@ -121,8 +146,8 @@ export function apply(ctx: Context, config: Config): void {
           sendError(res, 405, { error: { code: 'bad-request', message: 'GET only.' } })
           return
         }
-        const engine = snapshotOf(config)
         void (async () => {
+          const engine = await resolveEngineSnapshot(ctx, config)
           const hasVoiceSample = engine.voiceSamplePath !== ''
             ? await stat(engine.voiceSamplePath).then(value => value.isFile(), () => false)
             : false
@@ -158,7 +183,7 @@ export function apply(ctx: Context, config: Config): void {
             sendError(res, 400, { error: { code: 'bad-request', message: 'A non-empty `text` string is required.' } })
             return
           }
-          const engine = snapshotOf(config)
+          const engine = await resolveEngineSnapshot(ctx, config)
           try {
             const wav = await synthesizeSpeech(engine, {
               text: request.text,
@@ -215,7 +240,7 @@ export function apply(ctx: Context, config: Config): void {
             sendError(res, 400, { error: { code: 'bad-request', message: 'A non-empty `text` string is required.' } })
             return
           }
-          const engine = snapshotOf(config)
+          const engine = await resolveEngineSnapshot(ctx, config)
           try {
             const wav = await synthesizeSpeech(engine, {
               text: request.text,
@@ -269,7 +294,7 @@ export function apply(ctx: Context, config: Config): void {
             sendError(res, 404, { error: { code: 'bad-request', message: 'Unknown recording.' } })
             return
           }
-          const engine = snapshotOf(config)
+          const engine = await resolveEngineSnapshot(ctx, config)
           try {
             const wav = await synthesizeSpeech(engine, { text: recording.text })
             const added = await resynthesize(

@@ -129,7 +129,7 @@ export async function synthesizeSpeech(
   deps: TtsEngineDeps = nodeDeps,
 ): Promise<Uint8Array> {
   if (config.apiKey === '') {
-    throw new TtsError('not-configured', 'No MiMo API key is configured; set one in Settings → 语音合成.')
+    throw new TtsError('not-configured', 'No MiMo API key is configured; add the credential in the credentials store and reference it in Settings → 语音合成.')
   }
   const speakable = clampText(toSpeakableText(request.text ?? ''), config.maxChars)
   if (speakable === '') {

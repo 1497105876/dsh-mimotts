@@ -18,8 +18,8 @@ import z from '@deepseek-ai/schemastery';
 export declare const name = "mimotts";
 /** Runtime settings projected into the configuration form. */
 export interface Config {
-    /** Literal MiMo API key; leave blank and layer `!!js process.env.MIMO_API_KEY` over it instead. */
-    apiKey: Volatile<string | undefined>;
+    /** Credential reference naming the MiMo API key in the credentials store. */
+    apiKeyEnv: Volatile<string | undefined>;
     /** Endpoint base; `/chat/completions` is appended. */
     baseUrl: Volatile<string | undefined>;
     /** MiMo TTS model id. */
@@ -36,7 +36,7 @@ export interface Config {
     timeoutMs: Volatile<number>;
 }
 export declare const Config: z<Schemastery.ObjectS<NoInfer<{
-    apiKey: z<string, string, "volatile">;
+    apiKeyEnv: z<string, string, "volatile-defined">;
     baseUrl: z<string, string, "volatile-defined">;
     model: z<string, string, "volatile-defined">;
     voice: z<string, string, "volatile-defined">;
@@ -45,7 +45,7 @@ export declare const Config: z<Schemastery.ObjectS<NoInfer<{
     maxChars: z<number, number, "volatile-defined">;
     timeoutMs: z<number, number, "volatile-defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
-    apiKey: z<string, string, "volatile">;
+    apiKeyEnv: z<string, string, "volatile-defined">;
     baseUrl: z<string, string, "volatile-defined">;
     model: z<string, string, "volatile-defined">;
     voice: z<string, string, "volatile-defined">;

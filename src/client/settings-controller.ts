@@ -1,9 +1,9 @@
 /**
  * The staged settings form behind the `语音合成` page: one `SettingsFormModel`
- * over the `mimotts` configuration namespace, plus the write-only API-key
- * control (the literal is a `role('secret')` field — it never rides a form
- * response, so the page learns only whether one is configured, through the
- * Host's status route).
+ * over the `mimotts` configuration namespace. The API key is addressed by a
+ * credential reference (`apiKeyEnv`) — an ordinary, non-secret field; the
+ * literal key lives in the host credentials store, and the page learns only
+ * whether one resolves, through the Host's status route.
  * @module dsh-mimotts/client/settings-controller
  */
 
@@ -28,8 +28,10 @@ export type TtsSettingsSynthesize = (request: TtsSynthesizeRequest) => Promise<B
 
 /** What the settings page renders. */
 export interface TtsSettingsState extends SettingsFormShell {
-  /** The staged key plus whether the Host holds one. */
-  apiKey: SettingsFieldState & { configured: boolean }
+  /** The credential reference naming the key in the credentials store. */
+  apiKeyEnv: SettingsFieldState
+  /** Whether the Host resolves a non-empty key through that reference. */
+  apiKeyConfigured: boolean
   /** Endpoint base. */
   baseUrl: SettingsFieldState
   /** Model id. */
@@ -76,6 +78,7 @@ export class TtsSettingsController {
    */
   constructor(private readonly scope: SettingsFormScope<TtsSettings>) {
     this.form = new SettingsFormModel(scope, [
+      settingsTextField('apiKeyEnv'),
       settingsTextField('baseUrl'),
       settingsTextField('model'),
       settingsTextField('voice'),
@@ -83,7 +86,7 @@ export class TtsSettingsController {
       settingsTextField('style'),
       settingsNumberField('maxChars'),
       settingsNumberField('timeoutMs'),
-    ], [{ field: 'apiKey', write: text => this.writeApiKey(text) }])
+    ])
     this.store = this.form.bind(() => this.projection())
     // The status mirror answers "is a key configured", which the form section
     // cannot: secrets never ride a response. Its changes republish the page.
@@ -113,26 +116,12 @@ export class TtsSettingsController {
     this.form.dispose()
   }
 
-  /**
-   * Write the staged key through the settings namespace's mutate path, then
-   * re-read whether the Host now holds one.
-   * @param text - the staged key literal.
-   * @returns whether the Host accepted the write.
-   */
-  private async writeApiKey(text: string): Promise<boolean> {
-    const accepted = await this.scope.mutate(
-      [{ op: 'set', path: ['apiKey'], value: text }],
-      this.scope.getSnapshot().revision,
-    )
-    await refreshTtsStatus()
-    return accepted
-  }
-
   /** @returns the page projection rebuilt from the form and the status mirror. */
   private projection(): TtsSettingsState {
     return {
       ...this.form.shell(),
-      apiKey: { ...this.form.field('apiKey'), configured: this.status.getSnapshot().configured },
+      apiKeyEnv: this.form.field('apiKeyEnv'),
+      apiKeyConfigured: this.status.getSnapshot().configured,
       baseUrl: this.form.field('baseUrl'),
       model: this.form.field('model'),
       voice: this.form.field('voice'),

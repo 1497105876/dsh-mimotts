@@ -19,7 +19,7 @@ export type MimottsLocaleKey =
   | 'error.notConfigured' | 'error.badRequest' | 'error.timeout'
   | 'error.upstream' | 'error.invalidAudio' | 'error.voiceSample' | 'error.generic'
   | 'audition' | 'auditioning' | 'auditionHint'
-  | 'apiKey' | 'apiKeyHint' | 'apiKeySet' | 'apiKeyUnset'
+  | 'apiKeyEnv' | 'apiKeyEnvHint' | 'apiKeySet' | 'apiKeyUnset'
   | 'baseUrl' | 'baseUrlHint'
   | 'model' | 'modelHint'
   | 'voice' | 'voiceHint'
@@ -55,8 +55,8 @@ export const en: Record<MimottsLocaleKey, string> = {
   audition: 'Play sample',
   auditioning: 'Preparing sample…',
   auditionHint: 'Speaks a sample sentence with the style and voice currently on this page (saved or not).',
-  apiKey: 'API key',
-  apiKeyHint: 'Stored in the settings document as a write-only secret; it never returns to this page. To keep it out of files entirely, layer `apiKey: !!js process.env.MIMO_API_KEY` over the row in your profile patch.',
+  apiKeyEnv: 'Credential reference',
+  apiKeyEnvHint: 'Names the credential in the host credentials store (default MIMO_API_KEY). The literal key stays in the credentials store and never lands in a configuration file.',
   apiKeySet: 'A key is configured.',
   apiKeyUnset: 'No key is configured.',
   baseUrl: 'Endpoint base',
@@ -112,8 +112,8 @@ export const zh: Record<MimottsLocaleKey, string> = {
   audition: '试听',
   auditioning: '正在准备试听…',
   auditionHint: '用当前页面上的风格与音色（含未保存的修改）朗读一句示例。',
-  apiKey: 'API Key',
-  apiKeyHint: '以只写密钥形式存入设置文档，不会回传到本页。若想完全不落盘，可在 profile 补丁层里用 `apiKey: !!js process.env.MIMO_API_KEY` 覆盖该行。',
+  apiKeyEnv: '凭据引用名',
+  apiKeyEnvHint: '指向凭据存储中的条目（默认 MIMO_API_KEY）。密钥本体只存在凭据存储里，不会写入任何配置文件或备份。',
   apiKeySet: '已配置密钥。',
   apiKeyUnset: '未配置密钥。',
   baseUrl: '接口地址',
