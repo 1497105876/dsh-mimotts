@@ -9,6 +9,13 @@
  */
 /** Settings namespace: the profile entry id of this plugin's loader row. */
 export declare const MIMOTTS_NAMESPACE = "mimotts";
+/**
+ * Key this plugin's configuration card registers under on the Plugins page's
+ * `plugins.bundle.config` keyed slot: the bundle's npm package name, which is
+ * the keying convention the Plugins page fixes for bundle-owned configuration
+ * (the page dispatches with `entryKey: pkg.name`).
+ */
+export declare const MIMOTTS_PACKAGE_KEY = "@gw/dsh-mimotts";
 /** Route prefix owned by this plugin on `ctx.webServer`. */
 export declare const MIMOTTS_API_PREFIX = "/api/mimotts";
 /** `GET` route reporting the resolved engine configuration without secrets. */

@@ -1,13 +1,17 @@
 /**
- * The `语音合成` settings page: the MiMo endpoint, model, voice (preset or
- * clone sample), default style, request budget, and the write-only API key —
- * plus a sample player that previews the page's current style and voice,
- * including edits not yet saved.
+ * The plugin's configuration card on the Plugins page: registered into the
+ * `plugins.bundle.config` keyed slot (key = the npm package name), it renders
+ * inside the bundle's detail page between its description and its rows. The
+ * MiMo endpoint, model, voice (preset or clone sample), default style,
+ * request budget, and the write-only API key all live here — plus a sample
+ * player that previews the card's current style and voice, including edits
+ * not yet saved.
  *
- * The page renders the shared settings form frame, so saving, discarding,
+ * The card renders the shared settings form frame, so saving, discarding,
  * override badges, and read-only/unavailable handling follow the platform's
- * configuration-form conventions exactly.
- * @module dsh-mimotts/client/SettingsSection
+ * configuration-form conventions exactly. The Plugins page dispatches this
+ * slot with `view: 'page'` only, but the entry stays honest about it.
+ * @module dsh-mimotts/client/BundleConfigCard
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -19,16 +23,16 @@ import { TtsClientError } from './api.ts'
 import { errorKeyFor } from './SpeakAction.tsx'
 import type { MimottsLocaleKey } from './locales.ts'
 import { PlayerBar } from './PlayerBar.tsx'
-import { RecordingsList } from './RecordingsList.tsx'
-import type { TtsSettingsSectionProps } from './slots.ts'
+import type { BundleConfigCardProps } from './slots.ts'
 import { useAudioPlayer } from './use-audio-player.ts'
 
 /**
- * Render the speech-synthesis settings page.
+ * Render the plugin's configuration card.
  * @param props - localized copy, the staged form snapshot, and its actions.
- * @returns the settings form with its sample player.
+ * @returns the configuration form with its sample player, or null for a view
+ * this slot does not render (bundle configuration is page-only).
  */
-export function TtsSettingsSection({ useForm, edit, resetField, save, discard, synthesize, t }: TtsSettingsSectionProps) {
+export function BundleConfigCard({ view, useForm, edit, resetField, save, discard, synthesize, t }: BundleConfigCardProps) {
   const state = useForm(snapshot => snapshot)
   const [sampleUrl, setSampleUrl] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -71,6 +75,7 @@ export function TtsSettingsSection({ useForm, edit, resetField, save, discard, s
     })
   }, [busy, state.style.text, state.voice.text, synthesize])
 
+  if (view !== 'page') return null
   const disabled = !state.writable
   const failureKey: MimottsLocaleKey | null = failure === null ? null : errorKeyFor(failure)
   return (
@@ -205,11 +210,6 @@ export function TtsSettingsSection({ useForm, edit, resetField, save, discard, s
             : null}
         </div>
         {failureKey !== null ? <p className="mimotts-fieldError" role="status">{t(failureKey)}</p> : null}
-      </div>
-      <div className="mimotts-recordingsSection">
-        <h3 className="mimotts-recordingsTitle">{t('recordings')}</h3>
-        <p className="mimotts-recordingsHintText">{t('recordingsHint')}</p>
-        <RecordingsList t={t} />
       </div>
     </SettingsForm>
   )

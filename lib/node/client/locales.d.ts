@@ -1,6 +1,7 @@
 /**
  * Locale bundles for the MiMo TTS plugin: the speak entry under each finalized
- * assistant message, its player, and the `语音合成` settings page.
+ * assistant message, its player, the Plugins-page configuration card, and the
+ * speech-history settings page.
  * @module dsh-mimotts/client/locales
  */
 /** Dictionary namespace owned by this plugin. */
@@ -13,7 +14,7 @@ export declare const en: Record<MimottsLocaleKey, string>;
 export declare const zh: Record<MimottsLocaleKey, string>;
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
-        /** MiMo TTS speak entry, player, and settings page copy. */
+        /** MiMo TTS speak entry, player, Plugins-page card, and history page copy. */
         'settings.mimotts': MimottsLocaleKey;
     }
 }

@@ -1,13 +1,16 @@
 /**
- * Injected faces and composed props of this plugin's two slot entries: the
- * speak control inside `conversation.chat.assistant-actions`, and the
- * `语音合成` page inside `settings.section`.
+ * Injected faces and composed props of this plugin's three slot entries: the
+ * speak control inside `conversation.chat.assistant-actions`, the plugin's
+ * configuration card inside `plugins.bundle.config` (the Plugins page's keyed
+ * slot for bundle-owned configuration), and the speech-history page inside
+ * `settings.section`.
  *
- * Both slots are declared and typed by other packages (ui-chat / ui-conversation
- * and the settings domain base); this package only contributes entries, so no
- * SlotMap merge lives here. Live state arrives through the `hooks` compartment
- * (the framework standard kit binds `status` into `useStatus` and `form` into
- * `useForm`), and business verbs arrive as plain callbacks.
+ * All three slots are declared and typed by other packages (ui-conversation,
+ * the Plugins page owner ui-plugin-manager, and the settings domain base);
+ * this package only contributes entries, so no SlotMap merge lives here. Live
+ * state arrives through the `hooks` compartment (the framework standard kit
+ * binds `status` into `useStatus` and `form` into `useForm`), and business
+ * verbs arrive as plain callbacks.
  * @module dsh-mimotts/client/slots
  */
 
@@ -15,6 +18,9 @@ import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
 import type { InjectFace, PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 // Type-only: pulls the ui-conversation SlotMap merge (the assistant-actions entry).
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
+// Type-only: pulls the Plugins page owner's SlotMap merge (the keyed
+// plugins.bundle.config entry) — cross-plugin declarations are import-type-only.
+import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 // Type-only: pulls the settings domain base's SlotMap merge (the settings.section
 // entry) and the ctx.configForms Context merge.
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -47,8 +53,17 @@ export type SpeakActionProps =
   & InjectFace<SpeakActionInjected>
   & PropsLocale<'settings.mimotts'>
 
-/** Full props of the `语音合成` settings page. */
-export type TtsSettingsSectionProps =
-  PropsRuntime<'settings.section'>
+/**
+ * Full props of the plugin's configuration card on the Plugins page. The
+ * `view` owner prop is `'page'` here — bundle configuration renders only the
+ * page form, never the summary one-liner.
+ */
+export type BundleConfigCardProps =
+  PropsRuntime<'plugins.bundle.config'>
   & InjectFace<TtsSettingsInjected>
+  & PropsLocale<'settings.mimotts'>
+
+/** Full props of the speech-history settings page. */
+export type RecordingsPageProps =
+  PropsRuntime<'settings.section'>
   & PropsLocale<'settings.mimotts'>

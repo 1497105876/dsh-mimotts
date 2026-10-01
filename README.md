@@ -1,6 +1,6 @@
 # @gw/dsh-mimotts — MiMo TTS 语音合成插件（DeepSeek Harness 0.2.0-rc.2）
 
-把助手回复"读出来"的 DSH 插件：**设置页里的"语音合成"配置页** + **每条已定稿助手回复动作行里的音量按钮** + **带可拖动进度条的内联播放器**。语音由小米 MiMo TTS（`mimo-v2.5-tts`）合成，API Key 只存在于宿主侧，浏览器只发送文本、收到 WAV。
+把助手回复"读出来"的 DSH 插件：**"插件"页里的配置卡片** + **每条已定稿助手回复动作行里的音量按钮** + **带可拖动进度条的内联播放器** + **设置页里的"语音历史"**。语音由小米 MiMo TTS（`mimo-v2.5-tts`）合成，API Key 只存在于宿主侧，浏览器只发送文本、收到 WAV。
 
 面向 **deepseek-harness `0.2.0-rc.2`**（`engines.dsh: ">=0.2.0-rc.2 <0.3.0"`），完全按照官方插件规范实现：
 
@@ -8,27 +8,30 @@
 |---|---|
 | [打包与安装插件](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/user/develop/basic/publish.zh.md)（bundle 组合包） | `package.json` 声明 `dsh.bundle.patch` + `cordis.patch.yml` 插入 `id: mimotts` 行；同包携带 `dsh.client` 浏览器半侧（裸包名行同时挂载 Host/Client 两侧） |
 | [插件配置](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/user/develop/basic/config.zh.md)（无硬编码可调参数） | 全部参数走 Schemastery Config + `.volatile()`（接口地址/模型/音色/克隆样本/风格/字数/超时均可配）；密钥 `role('secret')` |
-| [即时配置表单](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/cookbook/adding-a-settings-card.zh.md) | `ctx.configForms` + `SettingsFormModel` 标准表单；`ctx.settings.configure({ auto: false })` 关闭自动 Plugins 卡片，改为自己专属设置页 |
-| [Web Client Slots](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/subsystems/slots.zh.md) | `conversation.chat.assistant-actions`（消息动作行）+ `settings.section`（设置页）两个 list 席位，`ctx.slots.inject` 贡献、effect 生命周期托管 |
+| [即时配置表单](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/cookbook/adding-a-settings-card.zh.md) | `ctx.configForms`（`mimotts` 命名空间）+ `SettingsFormModel` 标准表单；`ctx.settings.configure({ auto: false })` 关闭自动页策略，配置卡片自己注册进官方 `plugins.bundle.config`（key = npm 包名） |
+| [Web Client Slots](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/subsystems/slots.zh.md) | `plugins.bundle.config`（插件页配置卡）+ `conversation.chat.assistant-actions`（消息动作行）+ `settings.section`（语音历史页）三个席位，`ctx.slots.inject` 贡献、effect 生命周期托管；跨插件只 `import type` 取 slot 声明 |
 | [Web Server 子系统](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/subsystems/web-server.zh.md) | `ctx.webServer.register` 挂 `/api/mimotts/status`、`/api/mimotts/synthesize` 两条路由，入口先过 `ctx.connection.requestRejection` 信任栅栏（Host/Origin + 浏览器鉴权），LAN 裸请求无法白嫖 API 额度 |
 | [客户端模块系统](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/packages/client/modules/README.zh.md) | `lib/client.js` 为 lazy-CJS factory（`window.__ModuleLoader__.load({ id, factory })`），外部仅平台模块（react / cordis / client-store / ui-primitives），跨插件只经 Cordis 服务与 `import type`（构建期 purity gate 强制） |
 | [extension-cookbook · UI 插件](https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/docs/cookbook/extension-cookbook.zh.md) | 业务数据不进组件 props 面：文本经 `useChat` 从 Conversation binding 派生，配置经 `configForms`，合成经宿主路由，文案经 `ctx.locale`（zh/en 双语） |
 
 ## 功能
 
-1. **设置 → 语音合成（专属设置页）**
-   - API Key（只写密钥，绝不回传页面；显示"已配置/未配置"）
+1. **「插件」页 → @gw/dsh-mimotts 详情页的配置卡片**（官方 `plugins.bundle.config` 席位，key = 包名）
+   - API Key（凭据引用名，密钥本体只存凭据存储；显示"已配置/未配置"）
    - 接口地址（默认 `https://api.xiaomimimo.com/v1`）、模型（默认 `mimo-v2.5-tts`）
    - 预置音色（默认 `mimo_default`）/ 音色克隆样本（宿主本地 WAV 路径，24kHz/16bit/单声道，5–15s）
    - 默认风格（如"开心""语速慢""东北话"）、单次最大字符数、请求超时
-   - **试听**：用当前页面（含未保存修改）的风格/音色合成一句示例，内联播放
+   - **试听**：用卡片当前（含未保存修改）的风格/音色合成一句示例，内联播放
    - 标准表单行为：脏值预览、"已覆盖/恢复默认"徽标、保存/放弃、只读部署提示
 2. **每条已定稿助手回复底部的音量按钮**（位于该消息动作行，复制/分支之间）
    - 点击 → 宿主合成（Markdown 归一化：不朗读代码块/URL/标记符号）→ 自动播放
    - 播放器浮层：**播放/暂停 + 可拖动进度条（pointer 拖拽、单击定位、键盘 ←→/Home/End）** + 时间读数
    - 同时只有一条在播；播放中动作行不再悬停淡出
    - 失败就地提示（未配置/超时/上游拒绝/无文本等稳定错误码 → 本地化文案）
-3. **安全边界**：密钥只在宿主；`/api/mimotts/*` 两路由先过 Connection 信任栅栏；请求体 1MiB 上限；文本超预算在句末截断朗读开头。
+3. **设置 → 语音历史**
+   - 每次朗读自动保存；按文本分组、多版本并列
+   - 逐版本回放、「重新合成」（用当前配置重读并保留旧版本对比）、「删除」
+4. **安全边界**：密钥只在宿主；`/api/mimotts/*` 路由先过 Connection 信任栅栏；请求体 1MiB 上限；文本超预算在句末截断朗读开头。
 
 ## 目录
 
@@ -45,10 +48,11 @@ dsh-mimotts/
 │   ├── wav.ts  normalize.ts# PCM→WAV 封装；Markdown→可朗读文本
 │   ├── settings.ts         # 两侧共享：命名空间/路由/默认值/线格式类型
 │   └── client/
-│       ├── index.ts        # 浏览器插件：两个 slot 席位注册
+│       ├── index.ts        # 浏览器插件：三个 slot 席位注册
 │       ├── SpeakAction.tsx # 消息动作行的音量按钮 + 浮层播放器
 │       ├── PlayerBar.tsx   # 可拖动进度条（role=slider，指针+键盘）
-│       ├── SettingsSection.tsx + settings-controller.ts  # 设置页
+│       ├── BundleConfigCard.tsx + settings-controller.ts  # 插件页配置卡片
+│       ├── RecordingsPage.tsx + RecordingsList.tsx        # 语音历史设置页
 │       ├── chat-text.ts    # 从 Chat snapshot 取该消息的可朗读文本
 │       ├── use-audio-player.ts  # 播放引擎（单活播放器）
 │       ├── api.ts  status.ts  slots.ts  locales.ts  styles.ts  SpeakerIcon.tsx
@@ -76,7 +80,7 @@ dsh --profile demo --dump-config   # 应能看到 "# == dsh-mimotts" 层
 dsh --profile demo
 ```
 
-打开 `http://127.0.0.1:3080`：**设置 → 语音合成** 填入 API Key（试听可即时验证），随后每条已定稿回复下都会出现音量按钮。
+打开 `http://127.0.0.1:3080`：**「插件」页 → @gw/dsh-mimotts 卡片**里填入 API Key（试听可即时验证），随后每条已定稿回复下都会出现音量按钮；**设置 → 语音历史** 管理已保存的朗读。
 
 不想把密钥写进配置文件时，在 profile 的 `cordis.patch.yml` 里覆写该行：
 

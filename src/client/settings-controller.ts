@@ -1,9 +1,9 @@
 /**
- * The staged settings form behind the `语音合成` page: one `SettingsFormModel`
- * over the `mimotts` configuration namespace. The API key is addressed by a
- * credential reference (`apiKeyEnv`) — an ordinary, non-secret field; the
- * literal key lives in the host credentials store, and the page learns only
- * whether one resolves, through the Host's status route.
+ * The staged settings form behind the Plugins-page configuration card: one
+ * `SettingsFormModel` over the `mimotts` configuration namespace. The API key
+ * is addressed by a credential reference (`apiKeyEnv`) — an ordinary,
+ * non-secret field; the literal key lives in the host credentials store, and
+ * the card learns only whether one resolves, through the Host's status route.
  * @module dsh-mimotts/client/settings-controller
  */
 
@@ -48,7 +48,7 @@ export interface TtsSettingsState extends SettingsFormShell {
   timeoutMs: SettingsFieldState
 }
 
-/** The registration-side face the settings page's slot entry injects. */
+/** The registration-side face the Plugins-page card's slot entry injects. */
 export interface TtsSettingsInjected {
   hooks: {
     /** Page snapshot bound by the renderer as useForm. */

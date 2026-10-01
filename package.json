@@ -1,7 +1,7 @@
 {
   "name": "@gw/dsh-mimotts",
-  "version": "0.2.0-rc.2",
-  "description": "MiMo TTS speech synthesis for DeepSeek Harness: a voice-synthesis settings page, a speak button under every finalized assistant message, and an inline player with a draggable progress bar",
+  "version": "0.2.0-rc.3",
+  "description": "MiMo TTS speech synthesis for DeepSeek Harness: a configuration card on the Plugins page, a speak button under every finalized assistant message, and an inline player with a draggable progress bar",
   "icon": "./icon.svg",
   "type": "module",
   "main": "./lib/node/index.js",
@@ -77,6 +77,7 @@
     "@deepseek-ai/dsh-client-store": "0.2.0-rc.2",
     "@deepseek-ai/dsh-client-ui-chat": "0.2.0-rc.2",
     "@deepseek-ai/dsh-client-ui-conversation": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.0-rc.2",
     "@deepseek-ai/dsh-client-ui-primitives": "0.2.0-rc.2",
     "@deepseek-ai/dsh-client-ui-renderer": "0.2.0-rc.2",
     "@deepseek-ai/dsh-client-ui-session": "0.2.0-rc.2",
