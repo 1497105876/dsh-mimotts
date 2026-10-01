@@ -7,8 +7,10 @@
 # (see the client-modules README): the Host loader imports `dsh-mimotts`
 # (Node entry) and the Web module system ships `dsh-mimotts/client`.
 #
-# To keep the API key out of this file entirely, resolve it from the
-# environment in your own override layer instead of hard-coding it:
+# To keep the API key out of this file entirely, paste it into the plugin's
+# card on the Plugins page (stored via `credentials/set` under the reference
+# below). To resolve it from the environment in your own override layer
+# instead, override the reference's value there:
 #
 #   - id: mimotts
 #     config:

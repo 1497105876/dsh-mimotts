@@ -20,7 +20,7 @@ export type MimottsLocaleKey =
   | 'error.notConfigured' | 'error.badRequest' | 'error.timeout'
   | 'error.upstream' | 'error.invalidAudio' | 'error.voiceSample' | 'error.generic'
   | 'audition' | 'auditioning' | 'auditionHint'
-  | 'apiKeyEnv' | 'apiKeyEnvHint' | 'apiKeySet' | 'apiKeyUnset'
+  | 'apiKey' | 'apiKeyHint' | 'apiKeySet' | 'apiKeyUnset' | 'apiKeyRef' | 'apiKeyRefDefault'
   | 'baseUrl' | 'baseUrlHint'
   | 'model' | 'modelHint'
   | 'voice' | 'voiceHint'
@@ -56,8 +56,10 @@ export const en: Record<MimottsLocaleKey, string> = {
   audition: 'Play sample',
   auditioning: 'Preparing sample…',
   auditionHint: 'Speaks a sample sentence with the style and voice currently on this card (saved or not).',
-  apiKeyEnv: 'Credential reference',
-  apiKeyEnvHint: 'Names the credential in the host credentials store (default MIMO_API_KEY). The literal key stays in the credentials store and never lands in a configuration file.',
+  apiKey: 'API Key',
+  apiKeyHint: 'Paste the MiMo API key here. It is stored in the host credentials store and never rides a page response; clearing the field and saving changes nothing.',
+  apiKeyRef: 'Credential reference:',
+  apiKeyRefDefault: 'Credential reference: MIMO_API_KEY (default).',
   apiKeySet: 'A key is configured.',
   apiKeyUnset: 'No key is configured.',
   baseUrl: 'Endpoint base',
@@ -65,11 +67,11 @@ export const en: Record<MimottsLocaleKey, string> = {
   model: 'Model',
   modelHint: 'Leave blank to use mimo-v2.5-tts.',
   voice: 'Preset voice',
-  voiceHint: 'Leave blank to use mimo_default. Ignored while a voice-clone sample is set.',
+  voiceHint: 'Pick a preset voice; ignored while a voice-clone sample is set.',
   voiceSamplePath: 'Voice-clone sample (Host path)',
   voiceSamplePathHint: 'A 5–15 s WAV (24 kHz / 16-bit / mono) on the Host. Leave blank to speak with the preset voice.',
   style: 'Default speaking style',
-  styleHint: 'A natural-language phrase such as “开心”, “语速慢”, or “东北话”. Leave blank for neutral speech.',
+  styleHint: 'A natural-language phrase such as "开心", "语速慢", or "东北话". Leave blank to let the model judge for itself (recommended).',
   maxChars: 'Max characters per request',
   maxCharsHint: 'Longer replies are spoken from the beginning up to this budget, cut at a sentence boundary.',
   timeoutMs: 'Request timeout (ms)',
@@ -113,8 +115,10 @@ export const zh: Record<MimottsLocaleKey, string> = {
   audition: '试听',
   auditioning: '正在准备试听…',
   auditionHint: '用卡片当前的风格与音色（含未保存的修改）朗读一句示例。',
-  apiKeyEnv: '凭据引用名',
-  apiKeyEnvHint: '指向凭据存储中的条目（默认 MIMO_API_KEY）。密钥本体只存在凭据存储里，不会写入任何配置文件或备份。',
+  apiKey: 'API Key',
+  apiKeyHint: '在这里粘贴 MiMo API Key。密钥只存进宿主凭据存储，不会回传到页面；清空后保存不会改动已存的密钥。',
+  apiKeyRef: '凭据引用名：',
+  apiKeyRefDefault: '凭据引用名：MIMO_API_KEY（默认）。',
   apiKeySet: '已配置密钥。',
   apiKeyUnset: '未配置密钥。',
   baseUrl: '接口地址',
@@ -122,11 +126,11 @@ export const zh: Record<MimottsLocaleKey, string> = {
   model: '模型',
   modelHint: '留空使用 mimo-v2.5-tts。',
   voice: '预置音色',
-  voiceHint: '留空使用 mimo_default；配置了克隆样本时忽略此项。',
+  voiceHint: '从预置音色中选择；配置了克隆样本时忽略此项。',
   voiceSamplePath: '音色克隆样本（宿主路径）',
   voiceSamplePathHint: '宿主上的 5–15 秒 WAV（24kHz/16bit/单声道）。留空则使用预置音色。',
   style: '默认风格',
-  styleHint: '自然语言描述，例如「开心」「语速慢」「东北话」。留空为中性朗读。',
+  styleHint: '自然语言描述，例如「开心」「语速慢」「东北话」。留空由模型自行判断（推荐）。',
   maxChars: '单次最大字符数',
   maxCharsHint: '超出预算的回复只朗读开头，并在句末截断。',
   timeoutMs: '请求超时（毫秒）',

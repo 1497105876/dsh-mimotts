@@ -2,10 +2,10 @@
  * The plugin's configuration card on the Plugins page: registered into the
  * `plugins.bundle.config` keyed slot (key = the npm package name), it renders
  * inside the bundle's detail page between its description and its rows. The
- * MiMo endpoint, model, voice (preset or clone sample), default style,
- * request budget, and the write-only API key all live here — plus a sample
- * player that previews the card's current style and voice, including edits
- * not yet saved.
+ * write-only API key (stored through the host credentials store), the MiMo
+ * endpoint, model, voice (preset dropdown or clone sample), default style,
+ * request budget — plus a sample player that previews the card's current
+ * style and voice, including edits not yet saved.
  *
  * The card renders the shared settings form frame, so saving, discarding,
  * override badges, and read-only/unavailable handling follow the platform's

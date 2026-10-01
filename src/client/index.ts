@@ -22,6 +22,10 @@
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 // Type-only: pulls the locale plugin's Context merge (ctx.locale).
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+// Type-only: pulls the Context.remote merge and the credentials remote
+// namespace (credentials/set stores the typed API key, same as the official
+// add-model credential editor).
+import type {} from '@deepseek-ai/dsh-api-remotes/client'
 // Type-only: pulls the ctx.configForms merge and the settings.section SlotMap
 // entry (the settings domain base owns both declarations).
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
@@ -42,8 +46,8 @@ export type {
   BundleConfigCardProps, RecordingsPageProps, SpeakActionInjected, SpeakActionProps,
 } from './slots.ts'
 
-/** Required services (cordis fiber inject). */
-export const inject = ['slots', 'locale', 'configForms']
+/** Required services (cordis fiber inject); remote.credentials stores the API key. */
+export const inject = ['slots', 'locale', 'configForms', 'remote', 'remote.credentials']
 
 /**
  * Mount the speak entries, the Plugins-page configuration card, and the
@@ -55,7 +59,13 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-mimotts: dictionaries')
   const t = ctx.locale.bind(NS)
 
-  const controller = new TtsSettingsController(ctx.configForms.get<TtsSettings>(MIMOTTS_NAMESPACE))
+  // The typed API key stores through the platform's credentials remote — the
+  // same host operation the official add-model credential editor writes
+  // through — so the literal key never lands in a configuration file.
+  const controller = new TtsSettingsController(
+    ctx.configForms.get<TtsSettings>(MIMOTTS_NAMESPACE),
+    async (ref, value) => (await ctx.remote.credentials.set(ref, value)).ok,
+  )
   ctx.effect(() => () => { controller.dispose() }, 'dsh-mimotts: settings form')
 
   // The configuration card and the history page both edit or read the

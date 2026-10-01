@@ -100,6 +100,21 @@ export const CSS = `
 
 .mimotts-fieldError { margin: 0; font-size: 12px; color: var(--dsw-alias-label-error); }
 
+/* Preset-voice dropdown, styled to sit inside the shared settings form frame
+   like the primitive text fields around it. */
+.mimotts-selectField { display: flex; flex-direction: column; gap: 6px; }
+.mimotts-selectLabel { font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-primary); }
+.mimotts-select {
+  height: 34px; padding: 0 10px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-sm);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  font-size: 13px;
+}
+.mimotts-select:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 1px; }
+.mimotts-select:disabled { opacity: 0.6; cursor: default; }
+
 /* While a player is open, the message's action strip stays visible even when
    the pointer leaves the row — audio must not fade out mid-playback. The
    selector reads ui-chat's reveal attribute as a progressive enhancement: with

@@ -2,10 +2,10 @@
  * The plugin's configuration card on the Plugins page: registered into the
  * `plugins.bundle.config` keyed slot (key = the npm package name), it renders
  * inside the bundle's detail page between its description and its rows. The
- * MiMo endpoint, model, voice (preset or clone sample), default style,
- * request budget, and the write-only API key all live here — plus a sample
- * player that previews the card's current style and voice, including edits
- * not yet saved.
+ * write-only API key (stored through the host credentials store), the MiMo
+ * endpoint, model, voice (preset dropdown or clone sample), default style,
+ * request budget — plus a sample player that previews the card's current
+ * style and voice, including edits not yet saved.
  *
  * The card renders the shared settings form frame, so saving, discarding,
  * override badges, and read-only/unavailable handling follow the platform's
@@ -16,15 +16,32 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  SettingsForm, SettingsValueField,
+  SettingsForm, SettingsSecretField, SettingsValueField,
 } from '@deepseek-ai/dsh-client-ui-primitives'
-import { AUDITION_TEXT } from '../settings.ts'
+import { AUDITION_TEXT, DEFAULT_VOICE } from '../settings.ts'
 import { TtsClientError } from './api.ts'
 import { errorKeyFor } from './SpeakAction.tsx'
 import type { MimottsLocaleKey } from './locales.ts'
 import { PlayerBar } from './PlayerBar.tsx'
 import type { BundleConfigCardProps } from './slots.ts'
 import { useAudioPlayer } from './use-audio-player.ts'
+
+/**
+ * The official preset voices of `mimo-v2.5-tts` (Xiaomi MiMo speech-synthesis
+ * docs, 预置音色列表). The voice id is what the API's `audio.voice` takes;
+ * the display name is the docs' naming.
+ */
+const PRESET_VOICES: readonly { id: string; name: string }[] = [
+  { id: 'mimo_default', name: 'MiMo-默认' },
+  { id: '冰糖', name: '冰糖' },
+  { id: '茉莉', name: '茉莉' },
+  { id: '苏打', name: '苏打' },
+  { id: '白桦', name: '白桦' },
+  { id: 'Mia', name: 'Mia' },
+  { id: 'Chloe', name: 'Chloe' },
+  { id: 'Milo', name: 'Milo' },
+  { id: 'Dean', name: 'Dean' },
+]
 
 /**
  * Render the plugin's configuration card.
@@ -78,6 +95,12 @@ export function BundleConfigCard({ view, useForm, edit, resetField, save, discar
   if (view !== 'page') return null
   const disabled = !state.writable
   const failureKey: MimottsLocaleKey | null = failure === null ? null : errorKeyFor(failure)
+  // A blank draft inherits the preset default, so the dropdown shows it; a
+  // hand-edited custom voice outside the official list stays selectable.
+  const voiceDraft = state.voice.text.trim() === '' ? DEFAULT_VOICE : state.voice.text
+  const customVoice = PRESET_VOICES.some(voice => voice.id === voiceDraft)
+    ? null
+    : voiceDraft
   return (
     <SettingsForm
       labels={{
@@ -91,20 +114,20 @@ export function BundleConfigCard({ view, useForm, edit, resetField, save, discar
       onSave={save}
       onDiscard={discard}
     >
-      <SettingsValueField
-        id="mimotts-api-key-env"
-        label={t('apiKeyEnv')}
-        hint={t('apiKeyEnvHint')}
-        overriddenLabel={t('overridden')}
-        resetLabel={t('reset')}
-        invalidLabel={t('invalidNumber')}
+      <SettingsSecretField
+        id="mimotts-api-key"
+        label={t('apiKey')}
+        hint={t('apiKeyHint')}
+        text={state.apiKey.text}
         disabled={disabled}
-        {...state.apiKeyEnv}
-        onEdit={(text) => { edit('apiKeyEnv', text) }}
-        onReset={() => { resetField('apiKeyEnv') }}
+        configured={state.apiKeyConfigured}
+        stateLabel={state.apiKeyConfigured ? t('apiKeySet') : t('apiKeyUnset')}
+        onEdit={(text) => { edit('apiKey', text) }}
       />
       <p className="mimotts-auditionHint" role="status" style={{ marginTop: -6 }}>
-        {state.apiKeyConfigured ? t('apiKeySet') : t('apiKeyUnset')}
+        {state.apiKeyEnv !== undefined && state.apiKeyEnv.trim() !== ''
+          ? `${t('apiKeyRef')} ${state.apiKeyEnv}`
+          : t('apiKeyRefDefault')}
       </p>
       <SettingsValueField
         id="mimotts-base-url"
@@ -130,18 +153,24 @@ export function BundleConfigCard({ view, useForm, edit, resetField, save, discar
         onEdit={(text) => { edit('model', text) }}
         onReset={() => { resetField('model') }}
       />
-      <SettingsValueField
-        id="mimotts-voice"
-        label={t('voice')}
-        hint={t('voiceHint')}
-        overriddenLabel={t('overridden')}
-        resetLabel={t('reset')}
-        invalidLabel={t('invalidNumber')}
-        disabled={disabled}
-        {...state.voice}
-        onEdit={(text) => { edit('voice', text) }}
-        onReset={() => { resetField('voice') }}
-      />
+      <div className="mimotts-selectField">
+        <label className="mimotts-selectLabel" htmlFor="mimotts-voice-select">{t('voice')}</label>
+        <select
+          id="mimotts-voice-select"
+          className="mimotts-select"
+          disabled={disabled}
+          value={voiceDraft}
+          onChange={(event) => { edit('voice', event.target.value) }}
+        >
+          {PRESET_VOICES.map(voice => (
+            <option key={voice.id} value={voice.id}>
+              {voice.id === DEFAULT_VOICE ? `${voice.name}（默认）` : voice.name}
+            </option>
+          ))}
+          {customVoice !== null ? <option value={customVoice}>{customVoice}</option> : null}
+        </select>
+        <p className="mimotts-auditionHint">{t('voiceHint')}</p>
+      </div>
       <SettingsValueField
         id="mimotts-voice-sample"
         label={t('voiceSamplePath')}

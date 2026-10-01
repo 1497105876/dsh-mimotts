@@ -20,7 +20,7 @@
  */
 import type { Context as ClientContext } from '@deepseek-ai/cordis';
 export type { BundleConfigCardProps, RecordingsPageProps, SpeakActionInjected, SpeakActionProps, } from './slots.ts';
-/** Required services (cordis fiber inject). */
+/** Required services (cordis fiber inject); remote.credentials stores the API key. */
 export declare const inject: string[];
 /**
  * Mount the speak entries, the Plugins-page configuration card, and the
