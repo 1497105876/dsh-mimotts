@@ -4,8 +4,10 @@
  * Every spoken text becomes one recording node; each synthesis — first pass
  * or a later re-synthesis — appends a version with its own WAV file on disk.
  * A single `index.json` records the tree so the browser can list history
- * without scanning directories. The store lives under `~/.dsh`, outside the
- * plugin and any repository, so no recording leaks into version control.
+ * without scanning directories. The store lives under the active profile's
+ * data root (`~/.dsh/profiles/<profile>/mimotts-recordings`; the legacy global
+ * `~/.dsh` when no profile is active), outside the plugin and any repository,
+ * so no recording leaks into version control.
  *
  * Re-synthesis never overwrites: it adds a new version, leaving earlier
  * takes intact so the user can compare voices side by side.
@@ -16,13 +18,27 @@ import { randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { join } from 'node:path'
+import { profileScopedDefault } from './profile-dir.js'
 import type { TtsRecording, TtsRecordingsIndex, TtsRecordingVersion } from './settings.ts'
 
-/** Directory holding the index and all WAV files. */
-const RECORDINGS_DIR = join(homedir(), '.dsh', 'mimotts-recordings')
+/** The legacy home-level store, used when no DSH profile is active. */
+const LEGACY_RECORDINGS_DIR = join(homedir(), '.dsh', 'mimotts-recordings')
+
+// Resolved lazily on first use and cached: the profile signals (env, argv,
+// install location) only settle once the harness process is up, and the store
+// must stay in one place for the process lifetime.
+let cachedDir: string | undefined
+function recordingsDir(): string {
+  if (cachedDir === undefined) {
+    cachedDir = profileScopedDefault('mimotts-recordings') ?? LEGACY_RECORDINGS_DIR
+  }
+  return cachedDir
+}
 
 /** The single index file mapping texts to their version trees. */
-const INDEX_FILE = join(RECORDINGS_DIR, 'index.json')
+function indexFile(): string {
+  return join(recordingsDir(), 'index.json')
+}
 
 /** A recordings store with no entries yet. */
 const EMPTY_INDEX: TtsRecordingsIndex = { entries: [] }
@@ -32,7 +48,7 @@ const EMPTY_INDEX: TtsRecordingsIndex = { entries: [] }
 let ensurePromise: Promise<void> | undefined
 function ensureDir(): Promise<void> {
   if (ensurePromise === undefined) {
-    ensurePromise = mkdir(RECORDINGS_DIR, { recursive: true })
+    ensurePromise = mkdir(recordingsDir(), { recursive: true })
       .then(() => undefined)
       .catch((error: unknown) => {
         ensurePromise = undefined
@@ -48,7 +64,7 @@ function ensureDir(): Promise<void> {
  */
 async function readIndex(): Promise<TtsRecordingsIndex> {
   try {
-    const raw = await readFile(INDEX_FILE, 'utf8')
+    const raw = await readFile(indexFile(), 'utf8')
     const parsed = JSON.parse(raw) as Partial<TtsRecordingsIndex>
     return Array.isArray(parsed.entries) ? parsed as TtsRecordingsIndex : EMPTY_INDEX
   } catch {
@@ -59,7 +75,7 @@ async function readIndex(): Promise<TtsRecordingsIndex> {
 /** Persist the index, creating the directory first. */
 async function writeIndex(index: TtsRecordingsIndex): Promise<void> {
   await ensureDir()
-  await writeFile(INDEX_FILE, JSON.stringify(index), 'utf8')
+  await writeFile(indexFile(), JSON.stringify(index), 'utf8')
 }
 
 /** The on-disk file name for one version; ids are uuids, so no path tricks. */
@@ -69,7 +85,7 @@ function versionFileName(recId: string, verId: string): string {
 
 /** Absolute path of one version's WAV file. */
 export function versionFilePath(recId: string, verId: string): string {
-  return join(RECORDINGS_DIR, versionFileName(recId, verId))
+  return join(recordingsDir(), versionFileName(recId, verId))
 }
 
 /** The result of appending a version to a recording node. */

@@ -4,8 +4,10 @@
  * Every spoken text becomes one recording node; each synthesis — first pass
  * or a later re-synthesis — appends a version with its own WAV file on disk.
  * A single `index.json` records the tree so the browser can list history
- * without scanning directories. The store lives under `~/.dsh`, outside the
- * plugin and any repository, so no recording leaks into version control.
+ * without scanning directories. The store lives under the active profile's
+ * data root (`~/.dsh/profiles/<profile>/mimotts-recordings`; the legacy global
+ * `~/.dsh` when no profile is active), outside the plugin and any repository,
+ * so no recording leaks into version control.
  *
  * Re-synthesis never overwrites: it adds a new version, leaving earlier
  * takes intact so the user can compare voices side by side.
