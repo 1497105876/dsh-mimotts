@@ -1,6 +1,6 @@
 {
   "name": "@gw/dsh-mimotts",
-  "version": "2.1.1001",
+  "version": "2.1.1002",
   "description": "MiMo TTS speech synthesis for DeepSeek Harness: a configuration card on the Plugins page, a speak button under every finalized assistant message, and an inline player with a draggable progress bar",
   "icon": "./icon.svg",
   "type": "module",

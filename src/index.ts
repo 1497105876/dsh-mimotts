@@ -27,6 +27,7 @@ import {
 } from './settings.ts'
 import type { TtsErrorBody, TtsRecordingsIndex, TtsStatusView, TtsSynthesizeRequest } from './settings.ts'
 import { resolveEngineConfig, synthesizeSpeech, TtsError } from './tts.ts'
+import { createSayTool } from './tool.ts'
 import {
   addVersion, deleteVersion, hasVersion, listRecordings, resynthesize, versionFilePath,
 } from './recordings.ts'
@@ -114,6 +115,40 @@ export function apply(ctx: Context, config: Config): void {
   // entry), so it opts out of the automatic Plugins-page config card.
   ctx.inject(['settings'], (child) => {
     child.effect(() => child.settings.configure({ auto: false }, ctx.fiber))
+  })
+
+  // Agent tool: text → WAV in the session workspace. Only compositions that
+  // expose a `tools` service (chat / agent sessions) get it; the browser half
+  // and pure web compositions simply never enter this callback.
+  ctx.inject(['tools'], (child) => {
+    child.effect(() => {
+      const tools = (child as unknown as { tools?: { register?(tool: unknown): unknown } }).tools
+      // 没有 tools 服务（纯 Web 组合）时什么都不注册，但 effect 仍要返回一个清理函数
+      if (typeof tools?.register !== 'function') return () => {}
+      const dispose = tools.register(createSayTool({
+        synthesize: async (request) => {
+          const engine = await resolveEngineSnapshot(ctx, config)
+          const wav = await synthesizeSpeech(engine, request)
+          const style = (request.style ?? '').trim() || engine.style
+          const voice = (request.voice ?? '').trim() || engine.voice
+          return { wav, model: engine.model, style, voice }
+        },
+        // 同一份音频再进一次录音历史，设置页里可以回放对比
+        persist: async (request, outcome) => {
+          await addVersion(
+            request.text,
+            outcome.style === '' ? undefined : outcome.style,
+            outcome.voice === '' ? undefined : outcome.voice,
+            outcome.model,
+            outcome.wav,
+          )
+        },
+        log: message => console.info(message),
+      }))
+      return () => {
+        if (typeof dispose === 'function') (dispose as () => void)()
+      }
+    }, 'dsh-mimotts: say tool')
   })
 
   ctx.inject(['webServer', 'connection'], (child) => {
